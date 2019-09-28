@@ -23,14 +23,11 @@ namespace Zip {
 		NTSTATUS DOKAN_CALLBACK deleteFile(PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK deleteDirectory(PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK moveFile(LPCWSTR NewFileName, BOOL ReplaceIfExisting, PDOKAN_FILE_INFO DokanFileInfo) override;
-		NTSTATUS DOKAN_CALLBACK lockFile(LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK setEndOfFile(LONGLONG ByteOffset, PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK setAllocationSize(LONGLONG AllocSize, PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK setFileAttributes(DWORD FileAttributes, PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK setFileTime(CONST FILETIME* CreationTime, CONST FILETIME* LastAccessTime, CONST FILETIME* LastWriteTime, PDOKAN_FILE_INFO DokanFileInfo) override;
-		NTSTATUS DOKAN_CALLBACK unlockFile(LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK getFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo) override;
 		NTSTATUS DOKAN_CALLBACK setFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG SecurityDescriptorLength, PDOKAN_FILE_INFO DokanFileInfo) override;
-		NTSTATUS DOKAN_CALLBACK findStreams(PFillFindStreamData FillFindStreamData, PDOKAN_FILE_INFO DokanFileInfo) override;
 	};
 }

@@ -160,6 +160,7 @@
     <ClInclude Include="ZipFile.hpp" />
     <ClInclude Include="ZipFS.hpp" />
     <ClInclude Include="ZipPath.hpp" />
+    <ClInclude Include="ZipRootDirectory.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DokanInterface.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="ZipFile.cpp" />
     <ClCompile Include="ZipFS.cpp" />
     <ClCompile Include="ZipPath.cpp" />
+    <ClCompile Include="ZipRootDirectory.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

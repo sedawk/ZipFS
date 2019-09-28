@@ -24,8 +24,8 @@ namespace Zip {
 		options->Version = DOKAN_VERSION;
 		options->ThreadCount = 0;
 		options->MountPoint = mountPoint.c_str();
-		// options->Options |= DOKAN_OPTION_DEBUG;
 		// options->Options |= DOKAN_OPTION_STDERR;
+		// options->Options |= DOKAN_OPTION_DEBUG;
 		return options;
 	}
 
@@ -73,10 +73,6 @@ namespace Zip {
 		return archive.get(FileName)->moveFile(NewFileName, ReplaceIfExisting, DokanFileInfo);
 	}
 
-	static NTSTATUS DOKAN_CALLBACK lockFile(LPCWSTR FileName, LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) {
-		return archive.get(FileName)->lockFile(ByteOffset, Length, DokanFileInfo);
-	}
-
 	static NTSTATUS DOKAN_CALLBACK setEndOfFile(LPCWSTR FileName, LONGLONG ByteOffset, PDOKAN_FILE_INFO DokanFileInfo) {
 		return archive.get(FileName)->setEndOfFile(ByteOffset, DokanFileInfo);
 	}
@@ -91,10 +87,6 @@ namespace Zip {
 
 	static NTSTATUS DOKAN_CALLBACK setFileTime(LPCWSTR FileName, CONST FILETIME* CreationTime, CONST FILETIME* LastAccessTime, CONST FILETIME* LastWriteTime, PDOKAN_FILE_INFO DokanFileInfo) {
 		return archive.get(FileName)->setFileTime(CreationTime, LastAccessTime, LastWriteTime, DokanFileInfo);
-	}
-
-	static NTSTATUS DOKAN_CALLBACK unlockFile(LPCWSTR FileName, LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) {
-		return archive.get(FileName)->unlockFile(ByteOffset, Length, DokanFileInfo);
 	}
 
 	static NTSTATUS DOKAN_CALLBACK getFileSecurity(LPCWSTR FileName, PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo) {
@@ -116,10 +108,6 @@ namespace Zip {
 		*FreeBytesAvailable = 1024ULL * 1024 * 1024;
 		*TotalNumberOfFreeBytes = 1024ULL * 1024 * 1024;
 		return STATUS_SUCCESS;
-	}
-
-	static NTSTATUS DOKAN_CALLBACK findStreams(LPCWSTR FileName, PFillFindStreamData FillFindStreamData, PDOKAN_FILE_INFO DokanFileInfo) {
-		return archive.get(FileName)->findStreams(FillFindStreamData, DokanFileInfo);
 	}
 
 	static NTSTATUS DOKAN_CALLBACK mounted(PDOKAN_FILE_INFO DokanFileInfo) {
@@ -146,17 +134,17 @@ namespace Zip {
 		operations->DeleteFile = deleteFile;
 		operations->DeleteDirectory = deleteDirectory;
 		operations->MoveFile = moveFile;
-		operations->LockFile = lockFile;
+		operations->LockFile = nullptr;
 		operations->SetEndOfFile = setEndOfFile;
 		operations->SetAllocationSize = setAllocationSize;
 		operations->SetFileAttributes = setFileAttributes;
 		operations->SetFileTime = setFileTime;
-		operations->UnlockFile = unlockFile;
+		operations->UnlockFile = nullptr;
 		operations->GetFileSecurity = getFileSecurity;
 		operations->SetFileSecurity = setFileSecurity;
 		operations->GetVolumeInformation = getVolumeInformation;
 		operations->GetDiskFreeSpace = getDiskFreeSpace;
-		operations->FindStreams = findStreams;
+		operations->FindStreams = nullptr;
 		operations->Mounted = mounted;
 		operations->Unmounted = unmounted;
 		return operations;

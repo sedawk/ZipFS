@@ -24,5 +24,8 @@
     <ClCompile Include="UtilTest.cpp" />
     <ClCompile Include="ZipFileTest.cpp" />
     <ClCompile Include="ZipArchiveTest.cpp" />
+    <ClCompile Include="ZipDirectoryTest.cpp" />
+    <ClCompile Include="ZipPathTest.cpp" />
+    <ClCompile Include="ZipRootDirectoryTest.cpp" />
   </ItemGroup>
 </Project>

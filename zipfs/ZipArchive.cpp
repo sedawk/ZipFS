@@ -1,6 +1,7 @@
 #include "Util.hpp"
 #include "ZipArchive.hpp"
 #include "ZipDirectory.hpp"
+#include "ZipRootDirectory.hpp"
 #include "ZipFile.hpp"
 #include "ZipPath.hpp"
 
@@ -32,7 +33,7 @@ namespace Zip {
 		auto pathToDirectory = pathToFile + "/";
 
 		if (pathToFile == "") {
-			return std::make_shared<Zip::Directory>(mArchive, pathToFile);
+			return std::make_shared<Zip::RootDirectory>(mArchive);
 		}
 		if (mArchive->exists(pathToFile, ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437)) {
 			return std::make_shared<Zip::File>(mArchive, pathToFile);

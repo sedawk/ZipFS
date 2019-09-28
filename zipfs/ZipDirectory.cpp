@@ -19,6 +19,13 @@ namespace Zip {
 	}
 
 	NTSTATUS DOKAN_CALLBACK Directory::createFile(PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo) {
+		if (CreateOptions & FILE_NON_DIRECTORY_FILE) {
+			return STATUS_FILE_IS_A_DIRECTORY;
+		}
+		DokanFileInfo->IsDirectory = TRUE;
+		if (CreateDisposition == CREATE_ALWAYS || CreateDisposition == OPEN_ALWAYS) {
+			return STATUS_OBJECT_NAME_COLLISION;
+		}
 		return STATUS_SUCCESS;
 	}
 
@@ -27,7 +34,17 @@ namespace Zip {
 	}
 
 	void DOKAN_CALLBACK Directory::cleanup(PDOKAN_FILE_INFO DokanFileInfo) {
-		return;
+		if (!DokanFileInfo->IsDirectory) {
+			return;
+		}
+		if (!DokanFileInfo->DeleteOnClose) {
+			return;
+		}
+		if (getArchive()->listFiles(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437).size() > 0) {
+			return;
+		}
+		auto index = getArchive()->find(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
+		getArchive()->remove(index);
 	}
 
 	NTSTATUS DOKAN_CALLBACK Directory::readFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
@@ -43,12 +60,7 @@ namespace Zip {
 	}
 
 	NTSTATUS DOKAN_CALLBACK Directory::getFileInformation(LPBY_HANDLE_FILE_INFORMATION HandleFileInformation, PDOKAN_FILE_INFO DokanFileInfo) {
-		libzip::stat stat = {};
-		try {
-			stat = getArchive()->stat(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
-		}
-		catch (...) {
-		}
+		auto stat = getArchive()->stat(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
 		HandleFileInformation->dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
 		util::time::TimeToFileTime(stat.mtime, &HandleFileInformation->ftCreationTime);
 		util::time::TimeToFileTime(stat.mtime, &HandleFileInformation->ftLastAccessTime);
@@ -63,11 +75,8 @@ namespace Zip {
 	}
 
 	NTSTATUS DOKAN_CALLBACK Directory::findFiles(PFillFindData FillFindData, PDOKAN_FILE_INFO DokanFileInfo) {
-		for (auto i = 0; i < getArchive()->num_entries(); i++) {
-			auto stat = getArchive()->stat(i, ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
-			if (getPath() != util::filesystem::dirname(stat.name, '/')) {
-				continue;
-			}
+		auto stats = getArchive()->listFiles(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
+		for (auto stat : stats) {
 			WIN32_FIND_DATAW data = {};
 			data.dwFileAttributes = (util::string::endsWith(stat.name, "/")) ? FILE_ATTRIBUTE_DIRECTORY : FILE_ATTRIBUTE_NORMAL;
 			wcscpy_s(data.cFileName, wfilename(stat.name).c_str());
@@ -93,10 +102,6 @@ namespace Zip {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 
-	NTSTATUS DOKAN_CALLBACK Directory::lockFile(LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) {
-		return STATUS_NOT_IMPLEMENTED;
-	}
-
 	NTSTATUS DOKAN_CALLBACK Directory::setEndOfFile(LONGLONG ByteOffset, PDOKAN_FILE_INFO DokanFileInfo) {
 		return STATUS_NOT_IMPLEMENTED;
 	}
@@ -113,19 +118,11 @@ namespace Zip {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 
-	NTSTATUS DOKAN_CALLBACK Directory::unlockFile(LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) {
-		return STATUS_NOT_IMPLEMENTED;
-	}
-
 	NTSTATUS DOKAN_CALLBACK Directory::getFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo) {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 
 	NTSTATUS DOKAN_CALLBACK Directory::setFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG SecurityDescriptorLength, PDOKAN_FILE_INFO DokanFileInfo) {
-		return STATUS_NOT_IMPLEMENTED;
-	}
-
-	NTSTATUS DOKAN_CALLBACK Directory::findStreams(PFillFindStreamData FillFindStreamData, PDOKAN_FILE_INFO DokanFileInfo) {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 }

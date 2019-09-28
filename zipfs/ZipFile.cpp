@@ -21,6 +21,15 @@ namespace Zip {
 	}
 
 	NTSTATUS DOKAN_CALLBACK File::createFile(PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo) {
+		if (DokanFileInfo->IsDirectory) {
+			return STATUS_NOT_A_DIRECTORY;
+		}
+		if (CreateOptions & FILE_DIRECTORY_FILE) {
+			return STATUS_NOT_A_DIRECTORY;
+		}
+		if (CreateDisposition == CREATE_ALWAYS || CreateDisposition == OPEN_ALWAYS) {
+			return STATUS_OBJECT_NAME_COLLISION;
+		}
 		return STATUS_SUCCESS;
 	}
 
@@ -29,19 +38,21 @@ namespace Zip {
 	}
 
 	void DOKAN_CALLBACK File::cleanup(PDOKAN_FILE_INFO DokanFileInfo) {
-		return;
+		if (DokanFileInfo->IsDirectory) {
+			return;
+		}
+		if (!DokanFileInfo->DeleteOnClose) {
+			return;
+		}
+		auto index = getArchive()->find(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
+		getArchive()->remove(index);
 	}
 
 	NTSTATUS DOKAN_CALLBACK File::readFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
-		try {
-			auto file = getArchive()->open(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
-			file.seek(Offset);
-			*ReadLength = file.read(Buffer, BufferLength);
-			return STATUS_SUCCESS;
-		}
-		catch (...) {
-			return STATUS_UNEXPECTED_IO_ERROR;
-		}
+		auto file = getArchive()->open(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
+		file.seek(Offset);
+		*ReadLength = file.read(Buffer, BufferLength);
+		return STATUS_SUCCESS;
 	}
 
 	NTSTATUS DOKAN_CALLBACK File::writeFile(LPCVOID Buffer, DWORD NumberOfBytesToWrite, LPDWORD NumberOfBytesWritten, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
@@ -53,12 +64,7 @@ namespace Zip {
 	}
 
 	NTSTATUS DOKAN_CALLBACK File::getFileInformation(LPBY_HANDLE_FILE_INFORMATION HandleFileInformation, PDOKAN_FILE_INFO DokanFileInfo) {
-		libzip::stat stat = {};
-		try {
-			stat = getArchive()->stat(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
-		}
-		catch (...) {
-		}
+		auto stat = getArchive()->stat(getPath(), ZIP_FL_ENC_RAW | ZIP_FL_ENC_CP437);
 		HandleFileInformation->dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
 		util::time::TimeToFileTime(stat.mtime, &HandleFileInformation->ftCreationTime);
 		util::time::TimeToFileTime(stat.mtime, &HandleFileInformation->ftLastAccessTime);
@@ -84,10 +90,6 @@ namespace Zip {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 
-	NTSTATUS DOKAN_CALLBACK File::lockFile(LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) {
-		return STATUS_NOT_IMPLEMENTED;
-	}
-
 	NTSTATUS DOKAN_CALLBACK File::setEndOfFile(LONGLONG ByteOffset, PDOKAN_FILE_INFO DokanFileInfo) {
 		return STATUS_NOT_IMPLEMENTED;
 	}
@@ -104,19 +106,11 @@ namespace Zip {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 
-	NTSTATUS DOKAN_CALLBACK File::unlockFile(LONGLONG ByteOffset, LONGLONG Length, PDOKAN_FILE_INFO DokanFileInfo) {
-		return STATUS_NOT_IMPLEMENTED;
-	}
-
 	NTSTATUS DOKAN_CALLBACK File::getFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo) {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 
 	NTSTATUS DOKAN_CALLBACK File::setFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG SecurityDescriptorLength, PDOKAN_FILE_INFO DokanFileInfo) {
-		return STATUS_NOT_IMPLEMENTED;
-	}
-
-	NTSTATUS DOKAN_CALLBACK File::findStreams(PFillFindStreamData FillFindStreamData, PDOKAN_FILE_INFO DokanFileInfo) {
 		return STATUS_NOT_IMPLEMENTED;
 	}
 }

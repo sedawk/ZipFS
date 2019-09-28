@@ -42,8 +42,9 @@
 #include <iterator>
 #include <memory>
 #include <string>
-
+#include <vector>
 #include <zip.h>
+#include "Util.hpp"
 
   /**
    * \brief The libzip namespace.
@@ -749,6 +750,21 @@ namespace libzip {
 				throw std::runtime_error(zip_strerror(handle_.get()));
 
 			return st;
+		}
+
+		std::vector<libzip::stat> listFiles(const std::string& directory, flags_t flags = 0) const {
+			std::vector<libzip::stat> stats;
+			for (auto i = 0; i < num_entries(); i++) {
+				auto stbuf = stat(i, flags);
+				if (directory == util::filesystem::dirname(stbuf.name, '/')) {
+					stats.push_back(stbuf);
+				}
+			}
+			return stats;
+		}
+
+		bool hasFiles(const std::string& directory, flags_t flags = 0) const {
+			return listFiles(directory, flags).size() > 0;
 		}
 
 		/**
