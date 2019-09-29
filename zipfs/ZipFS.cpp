@@ -10,6 +10,21 @@ namespace Zip {
 	static std::wstring mountPoint;
 	static Zip::Archive archive;
 
+	BOOL WINAPI ConsoleControlHandler(DWORD dwCtrlType) {
+		switch (dwCtrlType) {
+		case CTRL_C_EVENT:
+		case CTRL_BREAK_EVENT:
+		case CTRL_CLOSE_EVENT:
+		case CTRL_LOGOFF_EVENT:
+		case CTRL_SHUTDOWN_EVENT:
+			SetConsoleCtrlHandler(ConsoleControlHandler, FALSE);
+			DokanRemoveMountPoint(mountPoint.c_str());
+			return TRUE;
+		default:
+			return FALSE;
+		}
+	}
+
 	std::shared_ptr<DOKAN_OPTIONS> FS::parse(const std::vector<std::wstring>& args) {
 		if (args.size() < 3) {
 			throw std::invalid_argument("Not enough arguments");
@@ -19,6 +34,10 @@ namespace Zip {
 		mountPoint = args[2];
 
 		archive.open(pathToFile);
+
+		if (!SetConsoleCtrlHandler(ConsoleControlHandler, TRUE)) {
+			throw std::runtime_error("Failed to set up the console control handler");
+		}
 
 		auto options = std::make_shared<DOKAN_OPTIONS>();
 		options->Version = DOKAN_VERSION;
