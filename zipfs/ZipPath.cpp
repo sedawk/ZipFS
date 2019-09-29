@@ -19,11 +19,11 @@ namespace Zip {
 	}
 
 	NTSTATUS DOKAN_CALLBACK Path::createFile(PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo) {
-		if (CreateDisposition == CREATE_ALWAYS || CreateDisposition == OPEN_ALWAYS) {
+		if (CreateDisposition == CREATE_NEW || CreateDisposition == CREATE_ALWAYS || CreateDisposition == OPEN_ALWAYS) {
 			if (DokanFileInfo->IsDirectory) {
 				getArchive()->mkdir(getPath());
-				return STATUS_SUCCESS;
 			}
+			return STATUS_SUCCESS;
 		}
 		return STATUS_OBJECT_NAME_NOT_FOUND;
 	}

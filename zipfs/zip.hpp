@@ -763,10 +763,6 @@ namespace libzip {
 			return stats;
 		}
 
-		bool hasFiles(const std::string& directory, flags_t flags = 0) const {
-			return listFiles(directory, flags).size() > 0;
-		}
-
 		/**
 		 * Add a file to the archive.
 		 *
